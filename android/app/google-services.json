@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "853052114283",
+    "project_id": "smartkhrishi",
+    "storage_bucket": "smartkhrishi.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:853052114283:android:d15e9c119ed5ec7951782e",
+        "android_client_info": {
+          "package_name": "com.example.plant_health"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCbGqgmhj7tQV_E2n1s1H_LTumDoygL3x8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

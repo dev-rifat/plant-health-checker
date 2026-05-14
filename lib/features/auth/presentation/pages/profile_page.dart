@@ -1,0 +1,230 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:plant_health/core/navigation/app_router.dart';
+import 'package:plant_health/features/auth/presentation/cubit/auth_cubit.dart';
+import 'package:plant_health/features/auth/presentation/cubit/auth_state.dart';
+
+class ProfilePage extends StatefulWidget {
+  const ProfilePage({super.key});
+
+  @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  late final Future<PackageInfo> _packageInfoFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _packageInfoFuture = PackageInfo.fromPlatform();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+    final displayName = user?.displayName?.trim().isNotEmpty == true
+        ? user!.displayName!
+        : 'ব্যবহারকারী';
+    final phoneNumber = _phoneFromEmail(user?.email);
+
+    return BlocListener<AuthCubit, AuthState>(
+      listener: (context, state) {
+        if (state is AuthFailure) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.message)),
+          );
+        }
+
+        if (state is AuthLoggedOut) {
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            AppRouter.login,
+            (route) => false,
+          );
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('প্রোফাইল'),
+        ),
+        body: Container(
+          width: double.infinity,
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color(0xFFF4F9F4), Color(0xFFEAF5EC)],
+            ),
+          ),
+          child: SafeArea(
+            child: Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 420),
+                  child: Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: BlocBuilder<AuthCubit, AuthState>(
+                        builder: (context, state) {
+                          final isLoading = state is AuthLoading;
+
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              const CircleAvatar(
+                                radius: 38,
+                                backgroundColor: Color(0xFFE2F3E6),
+                                child: Icon(
+                                  Icons.person,
+                                  size: 42,
+                                  color: Color(0xFF2F8F57),
+                                ),
+                              ),
+                              const SizedBox(height: 14),
+                              Text(
+                                displayName,
+                                textAlign: TextAlign.center,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleLarge
+                                    ?.copyWith(fontWeight: FontWeight.w700),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'নাম্বার: $phoneNumber',
+                                textAlign: TextAlign.center,
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
+                              const SizedBox(height: 18),
+                              _ProfileInfoTile(
+                                icon: Icons.person_outline_rounded,
+                                title: 'ইউজার নাম',
+                                value: displayName,
+                              ),
+                              const SizedBox(height: 10),
+                              _ProfileInfoTile(
+                                icon: Icons.phone_android_rounded,
+                                title: 'মোবাইল নাম্বার',
+                                value: phoneNumber,
+                              ),
+                              const SizedBox(height: 10),
+                              const _ProfileInfoTile(
+                                icon: Icons.language_rounded,
+                                title: 'লোকালাইজেশন',
+                                value: 'বাংলা (ডিফল্ট)',
+                              ),
+                              const SizedBox(height: 10),
+                              FutureBuilder<PackageInfo>(
+                                future: _packageInfoFuture,
+                                builder: (context, snapshot) {
+                                  final versionText = snapshot.hasData
+                                      ? '${snapshot.data!.version}+${snapshot.data!.buildNumber}'
+                                      : 'v.1.2.0';
+                                  return _ProfileInfoTile(
+                                    icon: Icons.verified_outlined,
+                                    title: 'অ্যাপ ভার্সন',
+                                    value: versionText,
+                                  );
+                                },
+                              ),
+                              const SizedBox(height: 14),
+                              const _ProfileInfoTile(
+                                icon: Icons.palette_outlined,
+                                title: 'থিম',
+                                value: 'লাইট',
+                              ),
+                              const SizedBox(height: 18),
+                              ElevatedButton.icon(
+                                onPressed: isLoading
+                                    ? null
+                                    : () {
+                                        context.read<AuthCubit>().logout();
+                                      },
+                                icon: isLoading
+                                    ? const SizedBox(
+                                        width: 16,
+                                        height: 16,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: Colors.white,
+                                        ),
+                                      )
+                                    : const Icon(Icons.logout_rounded),
+                                label: const Text('লগআউট'),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _phoneFromEmail(String? email) {
+    if (email == null || !email.contains('@')) return '-';
+    return email.split('@').first;
+  }
+}
+
+class _ProfileInfoTile extends StatelessWidget {
+  const _ProfileInfoTile({
+    required this.icon,
+    required this.title,
+    required this.value,
+  });
+
+  final IconData icon;
+  final String title;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FCF8),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE1EEE2)),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 20, color: const Color(0xFF2F8F57)),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: const Color(0xFF5E7A64),
+                        fontWeight: FontWeight.w600,
+                      ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: const Color(0xFF1E4926),
+                        fontWeight: FontWeight.w600,
+                      ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
