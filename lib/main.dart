@@ -1,6 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:plant_health/core/config/app_config.dart';
 import 'package:plant_health/core/di/injection.dart';
 import 'package:plant_health/core/navigation/app_router.dart';
 import 'package:plant_health/core/navigation/navigation_service.dart';
@@ -15,6 +16,7 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  await AppConfig.initialize(); // fetch Gemini key from Remote Config
   setupServiceLocator();
   runApp(const MyApp());
 }

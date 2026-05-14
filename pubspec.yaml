@@ -59,6 +59,7 @@ dependencies:
 
   # App version info
   package_info_plus: ^8.0.2
+  firebase_remote_config: ^5.5.0
 
 dev_dependencies:
   flutter_test:
