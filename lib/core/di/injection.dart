@@ -2,9 +2,11 @@
 /// This file contains all the dependency injection configuration using GetIt
 /// Place all service registrations here
 
+import 'package:flutter/foundation.dart';
 import 'package:get_it/get_it.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:plant_health/core/config/app_config.dart';
 import 'package:plant_health/features/auth/data/services/firebase_auth_service.dart';
 import 'package:plant_health/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:plant_health/features/plant_detection/data/datasources/plant_detection_remote_datasource.dart';
@@ -34,9 +36,15 @@ void setupServiceLocator() {
   // Register Remote Data Sources
   getIt.registerSingleton<PlantDetectionRemoteDataSource>(
     PlantDetectionRemoteDataSourceImpl(
-      'AIzaSyAClHeMSF5Nntknb0rgJr4fOPKS3EG4MQY', // Gemini API key
+      AppConfig.geminiApiKey,
     ),
   );
+
+  if (!AppConfig.hasGeminiApiKey && kDebugMode) {
+    debugPrint(
+      'GEMINI_API_KEY is missing. Run with --dart-define=GEMINI_API_KEY=your_new_key',
+    );
+  }
 
   // Register Repositories
   getIt.registerSingleton<PlantDetectionRepository>(

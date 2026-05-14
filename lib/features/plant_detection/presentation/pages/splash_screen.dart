@@ -15,7 +15,7 @@ class _SplashScreenState extends State<SplashScreen>
 
   late final AnimationController _controller;
   late final Animation<double> _fadeAnimation;
-  late final bool _isLoggedIn;
+  bool _isLoggedIn = false;
 
   @override
   void initState() {
@@ -39,6 +39,11 @@ class _SplashScreenState extends State<SplashScreen>
       Future.delayed(const Duration(seconds: 5), () {
         if (!mounted) return;
         Navigator.pushReplacementNamed(context, AppRouter.home);
+      });
+    } else {
+      Future.delayed(const Duration(seconds: 3), () {
+        if (!mounted) return;
+        Navigator.pushReplacementNamed(context, AppRouter.login);
       });
     }
   }

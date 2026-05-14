@@ -32,3 +32,12 @@ class CaptureImageFromCameraEvent extends PlantDetectionEvent {
 class ResetPlantDetectionEvent extends PlantDetectionEvent {
   const ResetPlantDetectionEvent();
 }
+
+class ReturnToImagePreviewEvent extends PlantDetectionEvent {
+  final String imagePath;
+
+  const ReturnToImagePreviewEvent(this.imagePath);
+
+  @override
+  List<Object?> get props => [imagePath];
+}

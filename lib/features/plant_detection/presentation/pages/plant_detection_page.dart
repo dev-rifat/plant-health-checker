@@ -297,7 +297,7 @@ class PlantDetectionPage extends StatelessWidget {
                         onTap: () {
                           context
                               .read<PlantDetectionBloc>()
-                              .add(const ResetPlantDetectionEvent());
+                              .add(ReturnToImagePreviewEvent(result.imageUrl));
                         },
                       ),
                     ),
@@ -330,7 +330,7 @@ class PlantDetectionPage extends StatelessWidget {
                 onScanAgain: () {
                   context
                       .read<PlantDetectionBloc>()
-                      .add(AnalyzePlantImageEvent(result.imageUrl));
+                      .add(ReturnToImagePreviewEvent(result.imageUrl));
                 },
               ),
             ],
@@ -459,13 +459,14 @@ class PlantDetectionPage extends StatelessWidget {
         customBorder: const CircleBorder(),
         onTap: onTap,
         child: SizedBox(
-          width: 34,
-          height: 34,
-          child: Icon(icon, color: Colors.white, size: 18),
+          width: 46,
+          height: 46,
+          child: Icon(icon, color: Colors.white, size: 20),
         ),
       ),
     );
   }
+
 }
 
 class _FeatureChip extends StatelessWidget {
@@ -502,4 +503,5 @@ class _FeatureChip extends StatelessWidget {
       ),
     );
   }
+
 }

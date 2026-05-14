@@ -39,11 +39,12 @@ class _ProfilePageState extends State<ProfilePage> {
         }
 
         if (state is AuthLoggedOut) {
-          Navigator.pushNamedAndRemoveUntil(
-            context,
-            AppRouter.login,
-            (route) => false,
-          );
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            Navigator.of(context, rootNavigator: true).pushNamedAndRemoveUntil(
+              AppRouter.login,
+              (route) => false,
+            );
+          });
         }
       },
       child: Scaffold(
@@ -142,7 +143,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                 onPressed: isLoading
                                     ? null
                                     : () {
-                                        context.read<AuthCubit>().logout();
+                                        _showLogoutDialog(context);
                                       },
                                 icon: isLoading
                                     ? const SizedBox(
@@ -174,6 +175,32 @@ class _ProfilePageState extends State<ProfilePage> {
   String _phoneFromEmail(String? email) {
     if (email == null || !email.contains('@')) return '-';
     return email.split('@').first;
+  }
+
+  void _showLogoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('লগআউট করুন?'),
+        content: const Text('আপনি কি সত্যিই লগআউট করতে চান?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('বাতিল'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(dialogContext);
+              context.read<AuthCubit>().logout();
+            },
+            child: const Text(
+              'লগআউট',
+              style: TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

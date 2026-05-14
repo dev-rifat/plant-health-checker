@@ -17,6 +17,7 @@ class PlantDetectionBloc extends Bloc<PlantDetectionEvent, PlantDetectionState> 
     on<PickImageFromGalleryEvent>(_onPickImageFromGallery);
     on<CaptureImageFromCameraEvent>(_onCaptureImageFromCamera);
     on<ResetPlantDetectionEvent>(_onResetDetection);
+    on<ReturnToImagePreviewEvent>(_onReturnToImagePreview);
   }
 
   /// Handle analyze plant image event
@@ -77,5 +78,12 @@ class PlantDetectionBloc extends Bloc<PlantDetectionEvent, PlantDetectionState> 
     Emitter<PlantDetectionState> emit,
   ) async {
     emit(const PlantDetectionInitial());
+  }
+
+  Future<void> _onReturnToImagePreview(
+    ReturnToImagePreviewEvent event,
+    Emitter<PlantDetectionState> emit,
+  ) async {
+    emit(ImagePickedState(event.imagePath));
   }
 }

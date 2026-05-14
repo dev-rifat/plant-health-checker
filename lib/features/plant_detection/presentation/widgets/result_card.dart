@@ -394,7 +394,7 @@ class ResultCard extends StatelessWidget {
         ),
         const SizedBox(height: 14),
         Text(
-          'পাতা সুস্থ আছে',
+          'সুস্থ আছে',
           style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.w700,
                 color: const Color(0xFF1D1D1D),

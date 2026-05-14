@@ -19,6 +19,12 @@ class PlantDetectionRemoteDataSourceImpl
   @override
   Future<PlantAnalysisResultModel> analyzePlantImage(String imagePath) async {
     try {
+      if (geminiApiKey.trim().isEmpty) {
+        throw Exception(
+          'Gemini API key is missing. Please add a new key with --dart-define.',
+        );
+      }
+
       final imageFile = File(imagePath);
       if (!imageFile.existsSync()) {
         throw Exception('Image file not found');
@@ -92,8 +98,21 @@ class PlantDetectionRemoteDataSourceImpl
           imageUrl: imagePath,
         );
       } else {
+        final jsonResponse = jsonDecode(response.body);
+        final errorStatus = jsonResponse['error']?['status']?.toString() ?? '';
+        final errorMessage = jsonResponse['error']?['message']?.toString() ?? '';
+
+        if (response.statusCode == 403 ||
+            errorStatus == 'PERMISSION_DENIED' ||
+            errorMessage.toLowerCase().contains('api key')) {
+          throw Exception(
+            'Gemini API key is blocked, leaked, or restricted. Create a new key and run the app again.',
+          );
+        }
+
         throw Exception(
-            'Failed to analyze image: ${response.statusCode} - ${response.body}');
+          'Failed to analyze image: ${response.statusCode} - $errorMessage',
+        );
       }
     } catch (e) {
       throw Exception('Error analyzing plant image: $e');
