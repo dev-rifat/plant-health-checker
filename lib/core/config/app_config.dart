@@ -1,17 +1,29 @@
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/foundation.dart';
 
+/// Manages the pool of Gemini API keys and rotates between them.
+///
+/// Keys are never hardcoded here. Supply them via:
+/// - Firebase Remote Config key `gemini_api_keys` (comma-separated), for
+///   over-the-air rotation without a new app release, or
+/// - `--dart-define=GEMINI_API_KEYS=key1,key2,key3` for local dev.
+///
+/// Rotation exists because Gemini keys can expire, hit quota, or get
+/// blocked/leaked-detected; when that happens the caller should invoke
+/// [rotateGeminiApiKey] and retry instead of failing the whole request.
 class AppConfig {
-  // Fallback key used only when Remote Config is unavailable
-  static const String _fallbackKey = String.fromEnvironment(
-    'GEMINI_API_KEY',
-    defaultValue: 'AIzaSyCmPRhYlU-JF5ZD8BSvMop2CO6Qx9xS0uo',
+  static const String _fallbackKeysCsv = String.fromEnvironment(
+    'GEMINI_API_KEYS',
+    defaultValue: '',
   );
 
-  static String _runtimeKey = _fallbackKey;
+  static List<String> _keys = [];
+  static int _currentIndex = 0;
 
   /// Call this once at app startup (after Firebase.initializeApp)
   static Future<void> initialize() async {
+    _keys = _parseKeys(_fallbackKeysCsv);
+
     try {
       final remoteConfig = FirebaseRemoteConfig.instance;
 
@@ -21,20 +33,44 @@ class AppConfig {
       ));
 
       // Set default so the app works even before first fetch
-      await remoteConfig.setDefaults({'gemini_api_key': _fallbackKey});
+      await remoteConfig.setDefaults({'gemini_api_keys': _fallbackKeysCsv});
 
       await remoteConfig.fetchAndActivate();
 
-      final fetchedKey = remoteConfig.getString('gemini_api_key').trim();
-      if (fetchedKey.isNotEmpty) {
-        _runtimeKey = fetchedKey;
-        debugPrint('✅ Gemini key loaded from Remote Config');
+      final fetchedKeys =
+          _parseKeys(remoteConfig.getString('gemini_api_keys').trim());
+      if (fetchedKeys.isNotEmpty) {
+        _keys = fetchedKeys;
+        debugPrint('✅ Loaded ${_keys.length} Gemini key(s) from Remote Config');
       }
     } catch (e) {
-      debugPrint('⚠️ Remote Config fetch failed, using fallback key: $e');
+      debugPrint('⚠️ Remote Config fetch failed, using local key pool: $e');
     }
+
+    _currentIndex = 0;
   }
 
-  static String get geminiApiKey => _runtimeKey;
-  static bool get hasGeminiApiKey => _runtimeKey.trim().isNotEmpty;
+  static List<String> _parseKeys(String csv) => csv
+      .split(',')
+      .map((key) => key.trim())
+      .where((key) => key.isNotEmpty)
+      .toList();
+
+  /// The key to try right now. Empty if none are configured.
+  static String get geminiApiKey => _keys.isEmpty ? '' : _keys[_currentIndex];
+
+  static bool get hasGeminiApiKey => _keys.isNotEmpty;
+
+  /// How many keys are in the pool, so callers know when to stop retrying.
+  static int get geminiApiKeyCount => _keys.length;
+
+  /// Advances to the next key in the pool. Call this after a request fails
+  /// with an expired/blocked/quota error, then retry with the new
+  /// [geminiApiKey]. Returns false once every key has been tried.
+  static bool rotateGeminiApiKey({required int attempt}) {
+    if (attempt + 1 >= _keys.length) return false;
+    _currentIndex = (_currentIndex + 1) % _keys.length;
+    debugPrint('🔄 Rotated to Gemini key #$_currentIndex');
+    return true;
+  }
 }

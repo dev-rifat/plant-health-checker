@@ -35,14 +35,13 @@ void setupServiceLocator() {
 
   // Register Remote Data Sources
   getIt.registerSingleton<PlantDetectionRemoteDataSource>(
-    PlantDetectionRemoteDataSourceImpl(
-      AppConfig.geminiApiKey,
-    ),
+    PlantDetectionRemoteDataSourceImpl(),
   );
 
   if (!AppConfig.hasGeminiApiKey && kDebugMode) {
     debugPrint(
-      'GEMINI_API_KEY is missing. Run with --dart-define=GEMINI_API_KEY=your_new_key',
+      'No Gemini API keys configured. Run with '
+      '--dart-define=GEMINI_API_KEYS=key1,key2,key3',
     );
   }
 

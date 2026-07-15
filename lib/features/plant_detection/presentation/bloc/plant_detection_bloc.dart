@@ -30,7 +30,7 @@ class PlantDetectionBloc extends Bloc<PlantDetectionEvent, PlantDetectionState> 
       final result = await analyzePlantImageUseCase.call(event.imagePath);
       emit(PlantDetectionSuccess(result));
     } catch (e) {
-      emit(PlantDetectionError(e.toString()));
+      emit(PlantDetectionError(e.toString().replaceFirst('Exception: ', '')));
     }
   }
 
