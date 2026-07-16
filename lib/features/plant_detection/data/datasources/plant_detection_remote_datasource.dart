@@ -25,7 +25,7 @@ class _GeminiServerBusyException implements Exception {}
 class PlantDetectionRemoteDataSourceImpl
     implements PlantDetectionRemoteDataSource {
   final String baseUrl =
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent';
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent';
 
   static const _requestTimeout = Duration(seconds: 30);
   static const _serverErrorRetries = 2;
